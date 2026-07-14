@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>安徽墨森 - 全流程专业核价系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义滚动条和去输入框箭头美化 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            height: auto;
+        }
+        .input-field {
+            @apply w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 md:p-8 font-sans text-slate-800 min-h-screen">
+    <div class="max-w-7xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between mb-8 border-b border-slate-100 pb-5">
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight">安徽墨森 <span class="text-blue-600 font-normal">| 智能报价引擎 v3.0</span></h1>
+            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">系统已就绪</span>
+        </div>
+        
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            <!-- 左侧：参数输入区 (占3列) -->
+            <div class="xl:col-span-3 space-y-6">
+                
+                <!-- 1. 基础尺寸与数量 (蓝色系) -->
+                <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 transition-all hover:shadow-md">
+                    <h2 class="font-bold text-blue-900 mb-4 flex items-center">
+                        <span class="w-7 h-7 bg-blue-600 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">1</span>尺寸与数量
+                    </h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-blue-800">下单数量 (只)</label>
+                            <input type="number" id="qty" min="0" value="10000" class="input-field focus:border-blue-500 focus:ring-blue-200" oninput="calculate()">
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-blue-800 flex justify-between items-center">
+                                <span>预估拼版数</span>
+                                <span class="font-normal text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded text-[10px]">智能: <span id="smartImpDisp" class="font-bold">0</span></span>
+                            </label>
+                            <input type="number" id="imposition" min="0" placeholder="留空用智能拼版" class="input-field focus:border-blue-500 focus:ring-blue-200" oninput="calculate()">
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-blue-800">刀版长 (mm)</label>
+                            <input type="number" id="length" min="0" value="350" class="input-field focus:border-blue-500 focus:ring-blue-200" oninput="calculate()">
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-blue-800">刀版宽 (mm)</label>
+                            <input type="number" id="width" min="0" value="250" class="input-field focus:border-blue-500 focus:ring-blue-200" oninput="calculate()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 纸张材质与成本 (琥珀色系) -->
+                <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-100 transition-all hover:shadow-md">
+                    <h2 class="font-bold text-amber-900 mb-4 flex items-center">
+                        <span class="w-7 h-7 bg-amber-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">2</span>纸张材质及成本
+                    </h2>
+                    <div class="grid grid-cols-2 gap-5 mb-4 relative">
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-amber-900 flex justify-between">纸张长度 (MM) <span class="text-red-400 font-normal">最大1000</span></label>
+                            <input type="number" id="paperLength" min="0" value="650" class="input-field focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-amber-900 flex justify-between">纸张门幅 (MM) <span class="text-red-400 font-normal">最大700</span></label>
+                            <input type="number" id="paperWidth" min="0" value="450" class="input-field focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                        </div>
+                    </div>
+                    <!-- 纸张尺寸报错框 -->
+                    <div id="paperErrorBox" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-lg shadow-inner"></div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 border-t border-amber-200/60 pt-5">
+                        <!-- 面纸 -->
+                        <div class="flex flex-col space-y-2 bg-white p-4 rounded-xl shadow-sm border border-amber-100/50">
+                            <label class="text-xs font-bold text-slate-600 border-l-2 border-amber-400 pl-2">① 面纸参数</label>
+                            <input type="number" id="faceWeight" min="0" placeholder="克重 g/m²" class="input-field focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                            <div class="flex gap-2">
+                                <input type="number" id="facePrice" min="0" placeholder="单价" class="input-field w-3/5 focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                                <select id="faceUnit" class="input-field w-2/5 bg-slate-50 cursor-pointer focus:border-amber-500 focus:ring-amber-200" onchange="calculate()">
+                                    <option value="ton">元/吨</option><option value="sqm">元/平米</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- 瓦纸 -->
+                        <div class="flex flex-col space-y-2 bg-white p-4 rounded-xl shadow-sm border border-amber-100/50">
+                            <label class="text-xs font-bold text-slate-600 border-l-2 border-amber-400 pl-2 flex justify-between">② 瓦纸参数 <span class="text-[10px] text-amber-500 font-normal bg-amber-50 px-1 rounded">含1.3系数</span></label>
+                            <input type="number" id="corWeight" min="0" placeholder="克重 g/m²" class="input-field focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                            <div class="flex gap-2">
+                                <input type="number" id="corPrice" min="0" placeholder="单价" class="input-field w-3/5 focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                                <select id="corUnit" class="input-field w-2/5 bg-slate-50 cursor-pointer focus:border-amber-500 focus:ring-amber-200" onchange="calculate()">
+                                    <option value="ton">元/吨</option><option value="sqm">元/平米</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- 里纸 -->
+                        <div class="flex flex-col space-y-2 bg-white p-4 rounded-xl shadow-sm border border-amber-100/50">
+                            <label class="text-xs font-bold text-slate-600 border-l-2 border-amber-400 pl-2">③ 里纸参数</label>
+                            <input type="number" id="liningWeight" min="0" placeholder="克重 g/m²" class="input-field focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                            <div class="flex gap-2">
+                                <input type="number" id="liningPrice" min="0" placeholder="单价" class="input-field w-3/5 focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
+                                <select id="liningUnit" class="input-field w-2/5 bg-slate-50 cursor-pointer focus:border-amber-500 focus:ring-amber-200" onchange="calculate()">
+                                    <option value="ton">元/吨</option><option value="sqm">元/平米</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 核心工艺 (翡翠绿系) -->
+                <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 transition-all hover:shadow-md">
+                    <h2 class="font-bold text-emerald-900 mb-4 flex items-center">
+                        <span class="w-7 h-7 bg-emerald-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">3</span>印刷与模切
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex flex-col space-y-2 relative">
+                            <label class="text-xs font-bold text-emerald-800">印刷机台选型</label>
+                            <select id="printType" class="input-field cursor-pointer focus:border-emerald-500 focus:ring-emerald-200" onchange="calculate()">
+                                <option value="">无印刷 (空白)</option>
+                                <option value="双色机卡纸">双色机卡纸</option><option value="双色机F瓦">双色机F瓦</option>
+                                <option value="六色胶印机">六色胶印机</option><option value="UV胶印">UV胶印</option>
+                            </select>
+                            <div class="flex gap-2 mt-1">
+                                <input type="number" id="colors" min="0" placeholder="普通色数" class="input-field focus:border-emerald-500 focus:ring-emerald-200" oninput="calculate()">
+                                <input type="number" id="specColors" min="0" placeholder="专色数" class="input-field focus:border-emerald-500 focus:ring-emerald-200" oninput="calculate()">
+                            </div>
+                            <!-- 防呆报错 -->
+                            <div id="printErrorBox" class="hidden absolute top-[105%] left-0 w-full p-2.5 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-lg shadow-lg z-20"></div>
+                        </div>
+                        <div class="flex flex-col space-y-2">
+                            <label class="text-xs font-bold text-emerald-800">模切工艺</label>
+                            <select id="dieCutType" class="input-field cursor-pointer focus:border-emerald-500 focus:ring-emerald-200" onchange="calculate()">
+                                <option value="">无模切</option>
+                                <option value="卡纸平张模切">卡纸平张模切</option><option value="瓦纸平张模切">瓦纸平张模切</option>
+                                <option value="卡纸卷筒模切">卡纸卷筒模切</option><option value="瓦纸卷筒模切">瓦纸卷筒模切</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 后道与成型 (工艺紫系) -->
+                <div class="bg-purple-50/50 p-5 rounded-2xl border border-purple-100 transition-all hover:shadow-md">
+                    <h2 class="font-bold text-purple-900 mb-4 flex items-center">
+                        <span class="w-7 h-7 bg-purple-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">4</span>后道、成型与模具
+                    </h2>
+                    
+                    <div class="mb-5">
+                        <label class="text-xs font-bold text-purple-800 mb-2 block">多重后道工艺组合 (支持叠加3项)</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <select id="post1" class="input-field cursor-pointer focus:border-purple-500 focus:ring-purple-200" onchange="calculate()">
+                                <option value="">+ 添加后道项目 1</option>
+                                <optgroup label="覆膜/上光类"><option value="上光">上光</option><option value="普通光膜">普通光膜</option><option value="普通哑膜">普通哑膜</option><option value="开窗覆光膜">开窗覆光膜</option></optgroup>
+                                <optgroup label="裱卡/瓦楞类"><option value="杯套裱卡">杯套裱卡</option><option value="卡纸裱卡">卡纸裱卡</option><option value="裱瓦">裱瓦</option><option value="普通箱板E瓦">普通箱板E瓦</option><option value="特种纸E瓦">特种纸E瓦</option></optgroup>
+                                <optgroup label="贴窗及其他"><option value="普通贴窗">普通贴窗</option><option value="淋膜纸贴窗">淋膜纸贴窗</option><option value="异形盒贴窗">异形盒贴窗</option><option value="手工贴窗">手工贴窗</option><option value="浅压纹">浅压纹</option><option value="深压纹">深压纹</option><option value="清孔">清孔</option></optgroup>
+                            </select>
+                            <select id="post2" class="input-field cursor-pointer focus:border-purple-500 focus:ring-purple-200" onchange="calculate()"><option value="">+ 添加后道项目 2</option><option value="上光">上光</option><option value="普通光膜">普通光膜</option><option value="普通哑膜">普通哑膜</option><option value="开窗覆光膜">开窗覆光膜</option><option value="杯套裱卡">杯套裱卡</option><option value="卡纸裱卡">卡纸裱卡</option><option value="裱瓦">裱瓦</option><option value="普通箱板E瓦">普通箱板E瓦</option><option value="特种纸E瓦">特种纸E瓦</option><option value="普通贴窗">普通贴窗</option><option value="淋膜纸贴窗">淋膜纸贴窗</option><option value="异形盒贴窗">异形盒贴窗</option><option value="手工贴窗">手工贴窗</option><option value="浅压纹">浅压纹</option><option value="深压纹">深压纹</option><option value="清孔">清孔</option></select>
+                            <select id="post3" class="input-field cursor-pointer focus:border-purple-500 focus:ring-purple-200" onchange="calculate()"><option value="">+ 添加后道项目 3</option><option value="上光">上光</option><option value="普通光膜">普通光膜</option><option value="普通哑膜">普通哑膜</option><option value="开窗覆光膜">开窗覆光膜</option><option value="杯套裱卡">杯套裱卡</option><option value="卡纸裱卡">卡纸裱卡</option><option value="裱瓦">裱瓦</option><option value="普通箱板E瓦">普通箱板E瓦</option><option value="特种纸E瓦">特种纸E瓦</option><option value="普通贴窗">普通贴窗</option><option value="淋膜纸贴窗">淋膜纸贴窗</option><option value="异形盒贴窗">异形盒贴窗</option><option value="手工贴窗">手工贴窗</option><option value="浅压纹">浅压纹</option><option value="深压纹">深压纹</option><option value="清孔">清孔</option></select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 border-t border-purple-200/60 pt-5">
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-purple-800">成型工艺</label>
+                            <select id="molding" class="input-field cursor-pointer focus:border-purple-500 focus:ring-purple-200" onchange="calculate()">
+                                <option value="">无</option>
+                                <option value="普通汉堡盒">普通汉堡盒</option><option value="难度汉堡盒">难度汉堡盒</option><option value="普通无盖船盒">普通无盖船盒</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-purple-800">开模选项</label>
+                            <select id="moldType" class="input-field cursor-pointer focus:border-purple-500 focus:ring-purple-200" onchange="calculate()">
+                                <option value="">无开模 (现有模具)</option>
+                                <option value="船盒">船盒 (¥150)</option><option value="汉堡盒">汉堡盒 (¥300)</option><option value="热封机船盒">热封机船盒 (¥2500)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 装箱与物流预估 (深空蓝系) -->
+                <div class="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 transition-all hover:shadow-md">
+                    <h2 class="font-bold text-indigo-900 mb-4 flex items-center">
+                        <span class="w-7 h-7 bg-indigo-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">5</span>装箱与物流预估
+                    </h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 items-center">
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-indigo-800">单品重量 (kg)</label>
+                            <input type="number" id="singleWeight" min="0" step="0.001" placeholder="系统自动核算" class="input-field bg-indigo-100/50 border-indigo-200 text-indigo-900 font-mono font-bold cursor-not-allowed" readonly>
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-indigo-800">预估装箱量 (只/箱)</label>
+                            <input type="number" id="boxQty" min="0" class="input-field focus:border-indigo-500 focus:ring-indigo-200" oninput="calculate()">
+                        </div>
+                        <div class="flex flex-col space-y-1.5">
+                            <label class="text-xs font-bold text-indigo-800">预估纸箱单价 (¥)</label>
+                            <input type="number" id="boxPrice" min="0" class="input-field focus:border-indigo-500 focus:ring-indigo-200" oninput="calculate()">
+                        </div>
+                        <!-- 动态超重警示区 -->
+                        <div id="boxWeightPanel" class="bg-white p-3 rounded-xl border border-indigo-100 flex flex-col justify-center text-center transition-all duration-300 h-full shadow-sm">
+                            <span class="text-[10px] text-slate-500 mb-0.5 uppercase tracking-wider font-bold">每箱预估毛重</span>
+                            <div class="font-black text-xl" id="boxWeightDisp">- kg</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：结果展示区 (高级深色风) -->
+            <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-700 sticky top-6 h-fit flex flex-col justify-between">
+                <div>
+                    <h2 class="text-slate-400 text-sm font-bold tracking-wide mb-2 uppercase">单件生产成本 (RMB)</h2>
+                    <div id="unitPrice" class="text-5xl md:text-6xl font-black mb-6 text-emerald-400 tracking-tight" style="text-shadow: 0 0 20px rgba(52, 211, 153, 0.2);">¥ 0.00</div>
+                    
+                    <h2 class="text-slate-400 text-sm font-bold tracking-wide mb-2 uppercase">生产总成本预估</h2>
+                    <div id="totalCost" class="text-3xl font-bold mb-6 text-white">¥ 0.00</div>
+                    
+                    <!-- 成本解构详情 -->
+                    <div class="space-y-3 text-sm border-t border-slate-700/80 pt-6 pb-6">
+                        <div class="flex justify-between items-center text-slate-300 border-b border-slate-700/50 pb-2 border-dashed">
+                            <span>所需印张数:</span><span id="sheetCount" class="font-mono text-amber-300 font-bold bg-amber-900/30 px-2 py-0.5 rounded">0 张</span>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <span class="text-slate-400 group-hover:text-white transition-colors">1. 纸价合计:</span>
+                            <span id="resPaper" class="text-amber-400 font-bold">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <span class="text-slate-400 group-hover:text-white transition-colors">2. 印刷费:</span>
+                            <span id="resPrint">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <span class="text-slate-400 group-hover:text-white transition-colors">3. 模切费:</span>
+                            <span id="resDieCut">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <span class="text-slate-400 group-hover:text-white transition-colors">4. 后道工艺:</span>
+                            <span id="resPost">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <span class="text-slate-400 group-hover:text-white transition-colors">5. 成型费:</span>
+                            <span id="resMolding">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center group">
+                            <span class="text-slate-400 group-hover:text-white transition-colors">6. 模具费:</span>
+                            <span id="resMold">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-indigo-300 font-bold bg-indigo-900/20 -mx-2 px-2 py-1 rounded">
+                            <span>7. 纸箱总费 (<span id="resBoxNum">0</span> 个):</span>
+                            <span id="resBoxCost">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span>8. 耗损系数:</span><span id="resLoss">¥ 0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span>9. 综合打包:</span><span id="resPack">¥ 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 销售与利润评估区 -->
+                <div class="border-t border-slate-700 pt-6 mt-4 bg-slate-800/50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 rounded-b-3xl">
+                    <h2 class="text-slate-300 mb-5 font-black text-base uppercase tracking-widest flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        财务收益评估
+                    </h2>
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-slate-400 font-medium">设定销售单价:</span>
+                        <div class="flex items-center relative">
+                            <span class="text-slate-400 absolute left-3 font-bold">¥</span>
+                            <input type="number" id="salesPrice" min="0" value="0.500" step="0.001" class="w-28 pl-7 pr-3 py-1.5 rounded-lg bg-slate-950 text-white border border-slate-600 text-right font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow" oninput="calculate()">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-400 font-medium">预估毛利率:</span>
+                        <span id="dispProfit" class="font-black text-3xl px-3 py-1.5 rounded-lg shadow-inner bg-slate-700 text-slate-300 transition-colors">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局防负数拦截器
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function() {
+                if (parseFloat(this.value) < 0) this.value = 0;
+            });
+        });
+
+        // 核心数据库保持不变 (保证逻辑纯洁性)
+        const DB = {
+            printLimits: {
+                "双色机卡纸": { maxColors: 2, maxSpecColors: 2, maxTotal: 4 },
+                "双色机F瓦": { maxColors: 2, maxSpecColors: 2, maxTotal: 4 },
+                "六色胶印机": { maxColors: 6, maxSpecColors: 5, maxTotal: 11 }, 
+                "UV胶印": { maxColors: 8, maxSpecColors: 7, maxTotal: 15 }      
+            },
+            dieCut: {
+                "卡纸平张模切": { mode: "flat", unit: 40, start: 100 }, "瓦纸平张模切": { mode: "flat", unit: 45, start: 100 },
+                "卡纸卷筒模切": { mode: "roll", unit: 0.02, start: 110 }, "瓦纸卷筒模切": { mode: "roll", unit: 0.026, start: 150 }
+            },
+            postProcess: {
+                "杯套裱卡": { logic: "area", unit: 0.25, start: 200 }, "卡纸裱卡": { logic: "area", unit: 0.31, start: 200 },
+                "淋膜纸贴窗": { logic: "qty", unit: 0.035, start: 600 }, "普通贴窗": { logic: "qty", unit: 0.028, start: 600 },
+                "上光": { logic: "area", unit: 0.16, start: 0 }, "异形盒贴窗": { logic: "qty", unit: 0.041, start: 600 },
+                "手工贴窗": { logic: "qty", unit: 0.05, start: 600 }, "裱瓦": { logic: "area", unit: 0.23, start: 200 },
+                "普通光膜": { logic: "area", unit: 0.39, start: 0 }, "开窗覆光膜": { logic: "area", unit: 0.71, start: 2500 },
+                "普通哑膜": { logic: "area", unit: 0.43, start: 0 }, "普通箱板E瓦": { logic: "area", unit: 0.25, start: 300 },
+                "特种纸E瓦": { logic: "area", unit: 0.35, start: 300 }, "浅压纹": { logic: "area", unit: 0.18, start: 0 },
+                "深压纹": { logic: "sheets", unit: 0.22, start: 0 }, "清孔": { logic: "sheets", unit: 0.052, start: 0 }
+            },
+            molding: {
+                "普通汉堡盒": { unit: 0.025, start: 500 }, "难度汉堡盒": { unit: 0.035, start: 950 },
+                "三角披萨盒": { unit: 0.035, start: 950 }, "普通无盖船盒": { unit: 0.022, start: 500 },
+                "难度无盖船盒": { unit: 0.032, start: 700 }
+            },
+            molds: { "船盒": 150, "汉堡盒": 300, "热封机船盒": 2500 }
+        };
+
+        const val = id => document.getElementById(id).value;
+        const num = id => Math.max(0, parseFloat(document.getElementById(id).value) || 0);
+        const setHtml = (id, val) => document.getElementById(id).innerHTML = val;
+
+        function calculate() {
+            const salesPrice = num('salesPrice');
+            const qty = num('qty');
+            
+            const length = num('length'); 
+            const width = num('width');   
+            const pLength = num('paperLength'); 
+            const pWidth = num('paperWidth');
+            
+            // --- 纸张尺寸防呆 ---
+            let paperError = "";
+            if (pLength > 1000) paperError += "❌ 超过长度限制：最大值为 1000<br>";
+            if (pWidth > 700) paperError += "❌ 超过门幅限制：最大值为 700";
+            
+            const paperErrorBox = document.getElementById('paperErrorBox');
+            if (paperError !== "") {
+                paperErrorBox.innerHTML = paperError;
+                paperErrorBox.classList.remove('hidden');
+            } else {
+                paperErrorBox.classList.add('hidden');
+            }
+
+            // --- 智能拼版 ---
+            let smartImp = 0;
+            if (length > 0 && width > 0 && pLength >= 15 && pWidth >= 6) {
+                const opt1_l = Math.max(0, Math.floor((pLength - 15) / length));
+                const opt1_w = Math.max(0, Math.floor((pWidth - 6) / width));
+                const opt1 = opt1_l * opt1_w;
+
+                const opt2_l = Math.max(0, Math.floor((pLength - 15) / width));
+                const opt2_w = Math.max(0, Math.floor((pWidth - 6) / length));
+                const opt2 = opt2_l * opt2_w;
+
+                smartImp = Math.max(opt1, opt2);
+            }
+            setHtml('smartImpDisp', smartImp);
+
+            const manualImp = num('imposition');
+            const imp = manualImp > 0 ? manualImp : smartImp;
+
+            // 1. 印张数
+            const sheets = imp === 0 ? 0 : Math.ceil(qty / imp);
+            const knifeAreaSqm = (length * width) / 1000000; 
+            
+            // 2. 纸价合计 
+            let paperCost = 0;
+            const faceW = num('faceWeight'), faceP = num('facePrice'), faceU = val('faceUnit');
+            const corW = num('corWeight'), corP = num('corPrice'), corU = val('corUnit');
+            const linW = num('liningWeight'), linP = num('liningPrice'), linU = val('liningUnit');
+
+            const faceCostSqm = faceU === 'ton' ? (faceW * faceP / 1000000) : faceP;
+            const corCostSqm  = (corU === 'ton' ? (corW * corP / 1000000) : corP) * 1.3; 
+            const linCostSqm  = linU === 'ton' ? (linW * linP / 1000000) : linP;
+
+            if (imp !== 0) {
+                const paperArea = (pWidth * pLength) / 1000000;
+                const materialCostFactor = faceCostSqm + corCostSqm + linCostSqm;
+                paperCost = paperArea * sheets * materialCostFactor;
+            }
+
+            // --- 5. 装箱重量 ---
+            let singleWeight = 0;
+            if (length > 0 && width > 0) {
+                singleWeight = ((length * width) / 1000000) * (faceW + (corW * 1.3) + linW) / 1000;
+            }
+            document.getElementById('singleWeight').value = singleWeight.toFixed(4);
+
+            const perBoxQty = num('boxQty');
+            const boxPrice = num('boxPrice');
+            let boxCount = 0;
+            let boxTotalCost = 0;
+            let boxWeightHtml = "- kg";
+            const boxWeightPanel = document.getElementById('boxWeightPanel');
+
+            if (perBoxQty > 0) {
+                boxCount = Math.ceil(qty / perBoxQty);
+                boxTotalCost = boxCount * boxPrice;
+                const totalBoxWeight = singleWeight * perBoxQty;
+                
+                if (totalBoxWeight > 25) {
+                    boxWeightHtml = `<span class="text-red-500 font-black">${totalBoxWeight.toFixed(2)} kg (超重)</span>`;
+                    boxWeightPanel.className = "p-3 rounded-xl border-2 border-red-400 bg-red-50 flex flex-col justify-center text-center shadow-inner transition-colors duration-300 h-full";
+                } else {
+                    boxWeightHtml = `<span class="text-indigo-600 font-black">${totalBoxWeight.toFixed(2)} kg</span>`;
+                    boxWeightPanel.className = "bg-white p-3 rounded-xl border border-indigo-100 flex flex-col justify-center text-center shadow-sm transition-colors duration-300 h-full";
+                }
+            } else {
+                boxWeightPanel.className = "bg-white p-3 rounded-xl border border-indigo-100 flex flex-col justify-center text-center shadow-sm transition-colors duration-300 h-full";
+            }
+            
+            // 3. 印刷费
+            let printCost = 0;
+            const printType = val('printType');
+            const errorBox = document.getElementById('printErrorBox');
+            
+            if (printType) {
+                const colors = num('colors');
+                const specColors = num('specColors');
+                const totalColors = colors + specColors;
+                
+                let isError = false;
+                const limits = DB.printLimits[printType];
+                if (limits) {
+                    if (colors > limits.maxColors || specColors > limits.maxSpecColors || totalColors > limits.maxTotal) {
+                        isError = true;
+                        errorBox.innerHTML = `⚠️ <b>阻断报警：</b> 当前机器极限为 普通色:${limits.maxColors}, 专色:${limits.maxSpecColors}`;
+                        errorBox.classList.remove('hidden');
+                    } else {
+                        errorBox.classList.add('hidden');
+                    }
+                }
+
+                if (!isError && totalColors > 0) {
+                    const spotFee = specColors * 200; 
+                    if (printType === "双色机卡纸" || printType === "双色机F瓦") {
+                        const basePrice = printType === "双色机卡纸" ? 30 : 40;
+                        const startFee = printType === "双色机卡纸" ? 300 : 500; 
+                        const startSheets = 3000;
+                        let baseCost = sheets <= startSheets ? startFee : startFee + ((sheets - startSheets) / 1000) * basePrice;
+                        printCost = baseCost + spotFee;
+                    } else if (printType === "六色胶印机") {
+                        const baseUnit = (colors === 0) ? (specColors + 3) : (specColors + 4);
+                        let baseCost = sheets <= 3000 ? (112.5 * baseUnit) : (112.5 * baseUnit) + ((sheets - 3000) / 1000) * 15 * baseUnit;
+                        let finalBaseCost = totalColors > 5 ? baseCost * 2 : baseCost;
+                        printCost = finalBaseCost + spotFee;
+                    } else if (printType === "UV胶印") {
+                        let startFee = 1200;
+                        if (totalColors <= 4) startFee = 1200;
+                        else if (totalColors <= 5) startFee = 1400;
+                        else if (totalColors <= 6) startFee = 1600;
+                        else startFee = 1800;
+                        const overRate = 0.05 * (totalColors < 4 ? 4 : totalColors);
+                        let baseCost = sheets <= 3000 ? startFee : startFee + (sheets - 3000) * overRate;
+                        let discount = sheets >= 100000 ? 1000 : 0;
+                        printCost = Math.max(0, baseCost - discount) + spotFee;
+                    }
+                }
+            } else {
+                errorBox.classList.add('hidden');
+            }
+
+            // 4. 模切费
+            let dieCutCost = 0;
+            const dieCutType = val('dieCutType');
+            if (dieCutType && DB.dieCut[dieCutType]) {
+                const cfg = DB.dieCut[dieCutType];
+                if (cfg.mode === "flat") dieCutCost = (sheets / 1000 * cfg.unit) + cfg.start;
+                else dieCutCost = (sheets * cfg.unit) + cfg.start;
+            }
+
+            // 5. 后道费
+            let postCost = 0;
+            let hasPostProcess = false;
+            ['post1', 'post2', 'post3'].forEach(postId => {
+                const pType = val(postId);
+                if (pType && DB.postProcess[pType]) {
+                    hasPostProcess = true;
+                    const cfg = DB.postProcess[pType];
+                    let calcVal = 0;
+                    if(cfg.logic === "area") calcVal = knifeAreaSqm * sheets * cfg.unit;
+                    else if(cfg.logic === "qty") calcVal = qty * cfg.unit;
+                    else if(cfg.logic === "sheets") calcVal = sheets * cfg.unit;
+                    postCost += Math.max(calcVal, cfg.start);
+                }
+            });
+
+            // 6. 成型费
+            let moldingCost = 0;
+            const moldingType = val('molding');
+            if (moldingType && DB.molding[moldingType]) {
+                const cfg = DB.molding[moldingType];
+                moldingCost = Math.max(qty * cfg.unit, cfg.start);
+            }
+
+            // 7. 模具费
+            let moldCost = 0;
+            const moldType = val('moldType');
+            if (moldType && DB.molds[moldType]) moldCost = DB.molds[moldType];
+
+            // 8. 耗损费
+            let lossRate = 0;
+            if(printType) lossRate += 0.3;
+            if(dieCutType) lossRate += 0.3;
+            if(hasPostProcess) lossRate += 0.1; 
+            if(moldingType) lossRate += 0.3;
+            const lossCost = paperCost * 0.01 * lossRate;
+
+            // 9. 打包费
+            let packRate = 0;
+            if(printType) packRate += 0.25;
+            if(dieCutType) packRate += 0.25;
+            if(hasPostProcess) packRate += 0.25;
+            if(moldingType) packRate += 0.25;
+            const packCost = (paperCost + printCost + dieCutCost + postCost + moldingCost) * 0.01 * packRate;
+
+            // 汇总计算
+            const total = paperCost + printCost + dieCutCost + postCost + moldingCost + moldCost + lossCost + packCost + boxTotalCost;
+            const unitPrice = qty > 0 ? (total / qty) : 0;
+
+            // 10. 利润率
+            let profitMargin = 0;
+            let profitHtml = "-";
+            let profitColor = "bg-slate-700 text-white shadow-inner";
+            
+            if (unitPrice > 0 && salesPrice > 0) {
+                profitMargin = (salesPrice - unitPrice) / unitPrice;
+                const percent = (profitMargin * 100).toFixed(2);
+                profitHtml = `${percent}%`;
+                
+                // 变色逻辑升级
+                if (profitMargin >= 0.25) profitColor = "bg-emerald-500 text-white shadow-inner shadow-emerald-700/50";
+                else if (profitMargin >= 0.15) profitColor = "bg-blue-500 text-white shadow-inner shadow-blue-700/50";
+                else if (profitMargin >= 0) profitColor = "bg-amber-500 text-slate-900 shadow-inner shadow-amber-700/50";
+                else profitColor = "bg-red-500 text-white shadow-inner shadow-red-700/50 animate-pulse";
+            }
+
+            // 渲染数据
+            setHtml('resBoxNum', boxCount);
+            setHtml('sheetCount', `${sheets} 张`);
+            setHtml('resPaper', `¥ ${paperCost.toFixed(2)}`);
+            setHtml('resPrint', `¥ ${printCost.toFixed(2)}`);
+            setHtml('resDieCut', `¥ ${dieCutCost.toFixed(2)}`);
+            setHtml('resPost', `¥ ${postCost.toFixed(2)}`);
+            setHtml('resMolding', `¥ ${moldingCost.toFixed(2)}`);
+            setHtml('resMold', `¥ ${moldCost.toFixed(2)}`);
+            setHtml('resBoxCost', `¥ ${boxTotalCost.toFixed(2)}`);
+            setHtml('resLoss', `¥ ${lossCost.toFixed(2)}`);
+            setHtml('resPack', `¥ ${packCost.toFixed(2)}`);
+            
+            // 总价数字处理
+            setHtml('totalCost', `¥ ${total.toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+            setHtml('unitPrice', `¥ ${unitPrice.toFixed(4)}`);
+            
+            const dispProfitObj = document.getElementById('dispProfit');
+            dispProfitObj.innerText = profitHtml;
+            dispProfitObj.className = `font-black text-3xl px-3 py-1.5 rounded-lg transition-all duration-300 ${profitColor}`;
+        }
+        calculate();
+    </script>
+</body>
+</html>
