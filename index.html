@@ -5,7 +5,6 @@
     <title>安徽墨森 - 全流程专业核价系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 自定义滚动条和去输入框箭头美化 */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
             height: auto;
@@ -18,20 +17,17 @@
 <body class="bg-slate-100 p-4 md:p-8 font-sans text-slate-800 min-h-screen">
     <div class="max-w-7xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-200">
         <div class="flex items-center justify-between mb-8 border-b border-slate-100 pb-5">
-            <h1 class="text-3xl font-black text-slate-800 tracking-tight">安徽墨森 <span class="text-blue-600 font-normal">| 智能报价引擎 v3.0</span></h1>
+            <h1 class="text-3xl font-black text-slate-800 tracking-tight">安徽墨森 <span class="text-blue-600 font-normal">| 智能报价引擎 v3.1</span></h1>
             <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">系统已就绪</span>
         </div>
         
         <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
-            <!-- 左侧：参数输入区 (占3列) -->
             <div class="xl:col-span-3 space-y-6">
                 
-                <!-- 1. 基础尺寸与数量 (蓝色系) -->
                 <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 transition-all hover:shadow-md">
                     <h2 class="font-bold text-blue-900 mb-4 flex items-center">
                         <span class="w-7 h-7 bg-blue-600 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">1</span>尺寸与数量
                     </h2>
-                    <!-- 优化点：加入 items-end 强制底部对齐，解决输入框高低不平问题 -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 items-end">
                         <div class="flex flex-col space-y-1.5">
                             <label class="text-xs font-bold text-blue-800">下单数量 (只)</label>
@@ -55,7 +51,6 @@
                     </div>
                 </div>
 
-                <!-- 2. 纸张材质与成本 (琥珀色系) -->
                 <div class="bg-amber-50/50 p-5 rounded-2xl border border-amber-100 transition-all hover:shadow-md">
                     <h2 class="font-bold text-amber-900 mb-4 flex items-center">
                         <span class="w-7 h-7 bg-amber-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">2</span>纸张材质及成本
@@ -70,7 +65,6 @@
                             <input type="number" id="paperWidth" min="0" value="450" class="input-field focus:border-amber-500 focus:ring-amber-200" oninput="calculate()">
                         </div>
                     </div>
-                    <!-- 纸张尺寸报错框 -->
                     <div id="paperErrorBox" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-lg shadow-inner"></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 border-t border-amber-200/60 pt-5">
@@ -107,14 +101,13 @@
                     </div>
                 </div>
 
-                <!-- 3. 核心工艺 (翡翠绿系) -->
                 <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 transition-all hover:shadow-md">
                     <h2 class="font-bold text-emerald-900 mb-4 flex items-center">
                         <span class="w-7 h-7 bg-emerald-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">3</span>印刷与模切
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                         <div class="flex flex-col space-y-2 relative">
-                            <label class="text-xs font-bold text-emerald-800">印刷机台选型</label>
+                            <label class="text-xs font-bold text-emerald-800">印刷机器</label>
                             <select id="printType" class="input-field cursor-pointer focus:border-emerald-500 focus:ring-emerald-200" onchange="calculate()">
                                 <option value="">无印刷 (空白)</option>
                                 <option value="双色机卡纸">双色机卡纸</option><option value="双色机F瓦">双色机F瓦</option>
@@ -137,7 +130,6 @@
                     </div>
                 </div>
 
-                <!-- 4. 后道与成型 (工艺紫系) -->
                 <div class="bg-purple-50/50 p-5 rounded-2xl border border-purple-100 transition-all hover:shadow-md">
                     <h2 class="font-bold text-purple-900 mb-4 flex items-center">
                         <span class="w-7 h-7 bg-purple-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">4</span>后道、成型与模具
@@ -162,7 +154,7 @@
                                 <option value="">+ 添加后道项目 3</option>
                                 <optgroup label="覆膜/上光类"><option value="上光">上光</option><option value="普通光膜">普通光膜</option><option value="普通哑膜">普通哑膜</option><option value="开窗覆光膜">开窗覆光膜</option></optgroup>
                                 <optgroup label="裱卡/瓦楞类"><option value="杯套裱卡">杯套裱卡</option><option value="卡纸裱卡">卡纸裱卡</option><option value="裱瓦">裱瓦</option><option value="普通箱板E瓦">普通箱板E瓦</option><option value="特种纸E瓦">特种纸E瓦</option></optgroup>
-                                <optgroup label="贴窗及其他"><option value="普通贴窗">普通贴窗</option><option value="淋膜纸贴窗">淋膜纸贴窗</option><option value="异形盒贴窗">异形盒贴窗</option><option value="手工贴窗">手工贴窗</option><option value="浅压纹">浅压纹</option><option value="深压纹">深压纹</option><option value="清孔">清孔</option></optgroup>
+                                <optgroup label="贴窗及其他"><option value="普通贴窗">普通贴窗</option><option value="淋膜纸贴窗">淋膜纸贴窗</option><option value="异形盒`贴窗">异形盒贴窗</option><option value="手工贴窗">手工贴窗</option><option value="浅压纹">浅压纹</option><option value="深压纹">深压纹</option><option value="清孔">清孔</option></optgroup>
                             </select>
                         </div>
                     </div>
@@ -185,12 +177,11 @@
                     </div>
                 </div>
 
-                <!-- 5. 箱规预估 (深空蓝系) -->
                 <div class="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 transition-all hover:shadow-md">
                     <h2 class="font-bold text-indigo-900 mb-2 flex items-center">
                         <span class="w-7 h-7 bg-indigo-500 text-white flex items-center justify-center rounded-lg mr-3 shadow-sm">5</span>箱规预估
                     </h2>
-                    <p class="text-[11px] text-indigo-500 mb-4 ml-10">注：单品重量为基于刀版尺寸与原纸材质推算的理论裸重，未计入覆膜、烫金等附加工艺误差，数据仅供箱规与物流参考。</p>
+                    <p class="text-[11px] text-indigo-500 mb-4 ml-10">注：单品重量为基于刀版尺寸与原纸材质推算的理论裸重，未计入覆膜等工艺物理误差，数据仅供箱规与物流参考。</p>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-5 items-end">
                         <div class="flex flex-col space-y-1.5">
                             <label class="text-xs font-bold text-indigo-800">单品重量 (kg)</label>
@@ -204,7 +195,6 @@
                             <label class="text-xs font-bold text-indigo-800">预估纸箱单价 (¥)</label>
                             <input type="number" id="boxPrice" min="0" class="input-field focus:border-indigo-500 focus:ring-indigo-200" oninput="calculate()">
                         </div>
-                        <!-- 动态超重警示区 -->
                         <div id="boxWeightPanel" class="bg-white p-3 rounded-xl border border-indigo-100 flex flex-col justify-center text-center transition-all duration-300 h-[62px] shadow-sm">
                             <span class="text-[10px] text-slate-500 mb-0.5 uppercase tracking-wider font-bold">每箱预估毛重</span>
                             <div class="font-black text-lg leading-tight" id="boxWeightDisp">- kg</div>
@@ -213,7 +203,6 @@
                 </div>
             </div>
 
-            <!-- 右侧：结果展示区 (高级深色风) -->
             <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-700 sticky top-6 h-fit flex flex-col justify-between">
                 <div>
                     <h2 class="text-slate-400 text-sm font-bold tracking-wide mb-2 uppercase">单件生产成本 (RMB)</h2>
@@ -222,7 +211,6 @@
                     <h2 class="text-slate-400 text-sm font-bold tracking-wide mb-2 uppercase">生产总成本预估</h2>
                     <div id="totalCost" class="text-3xl font-bold mb-6 text-white">¥ 0.00</div>
                     
-                    <!-- 成本解构详情 -->
                     <div class="space-y-3 text-sm border-t border-slate-700/80 pt-6 pb-6">
                         <div class="flex justify-between items-center text-slate-300 border-b border-slate-700/50 pb-2 border-dashed">
                             <span>所需印张数:</span><span id="sheetCount" class="font-mono text-amber-300 font-bold bg-amber-900/30 px-2 py-0.5 rounded">0 张</span>
@@ -251,20 +239,19 @@
                             <span class="text-slate-400 group-hover:text-white transition-colors">6. 模具费:</span>
                             <span id="resMold">¥ 0.00</span>
                         </div>
-                        <div class="flex justify-between items-center group">
-                            <span class="text-slate-400 group-hover:text-white transition-colors">7. 纸箱费 (<span id="resBoxNum">0</span> 个):</span>
-                            <span id="resBoxCost">¥ 0.00</span>
+                        <div class="flex justify-between items-center group text-slate-300">
+                            <span>7. 纸箱费 (<span id="resBoxNum">0</span> 个):</span>
+                            <span id="resBoxCost" class="font-bold">¥ 0.00</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-500">
-                            <span>8. 耗损系数:</span><span id="resLoss">¥ 0.00</span>
+                            <span>8. 纸张耗损费:</span><span id="resLoss">¥ 0.00</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-500">
-                            <span>9. 综合打包:</span><span id="resPack">¥ 0.00</span>
+                            <span>9. 打包费:</span><span id="resPack">¥ 0.00</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- 销售与利润评估区 -->
                 <div class="border-t border-slate-700 pt-6 mt-4 bg-slate-800/50 -mx-6 md:-mx-8 -mb-6 md:-mb-8 p-6 md:p-8 rounded-b-3xl">
                     <h2 class="text-slate-300 mb-5 font-black text-base uppercase tracking-widest flex items-center">
                         <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -289,7 +276,6 @@
     </div>
 
     <script>
-        // 全局防负数拦截器
         document.querySelectorAll('input[type="number"]').forEach(input => {
             input.addEventListener('input', function() {
                 if (parseFloat(this.value) < 0) this.value = 0;
@@ -371,7 +357,7 @@
 
             // 1. 印张数
             const sheets = imp === 0 ? 0 : Math.ceil(qty / imp);
-            const knifeAreaSqm = (length * width) / 1000000; 
+            const paperAreaSqm = (pLength * pWidth) / 1000000; // 大纸张面积
             
             // 2. 纸价合计 
             let paperCost = 0;
@@ -384,9 +370,8 @@
             const linCostSqm  = linU === 'ton' ? (linW * linP / 1000000) : linP;
 
             if (imp !== 0) {
-                const paperArea = (pWidth * pLength) / 1000000;
                 const materialCostFactor = faceCostSqm + corCostSqm + linCostSqm;
-                paperCost = paperArea * sheets * materialCostFactor;
+                paperCost = paperAreaSqm * sheets * materialCostFactor;
             }
 
             // --- 5. 装箱重量 ---
@@ -479,7 +464,7 @@
                 else dieCutCost = (sheets * cfg.unit) + cfg.start;
             }
 
-            // 5. 后道费
+            // 5. 后道费 (方案一核心逻辑修正：采用大纸面积参与面积核算)
             let postCost = 0;
             let hasPostProcess = false;
             ['post1', 'post2', 'post3'].forEach(postId => {
@@ -488,7 +473,7 @@
                     hasPostProcess = true;
                     const cfg = DB.postProcess[pType];
                     let calcVal = 0;
-                    if(cfg.logic === "area") calcVal = knifeAreaSqm * sheets * cfg.unit;
+                    if(cfg.logic === "area") calcVal = paperAreaSqm * sheets * cfg.unit; // 彻底修复：改用大纸张面积
                     else if(cfg.logic === "qty") calcVal = qty * cfg.unit;
                     else if(cfg.logic === "sheets") calcVal = sheets * cfg.unit;
                     postCost += Math.max(calcVal, cfg.start);
